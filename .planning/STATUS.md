@@ -109,28 +109,85 @@
 | 3 | **Chat AI FAB** | S | ✅ Livré | ChatFAB fixed bas-droite, grisé, tooltip "AI Tutor — coming soon". |
 | 4 | **Talk mode (grisé)** | S | ✅ Déjà fait | Carte PRACTICE déjà grisée + "Soon" dans le dashboard. |
 
-### V2 — Backlog lointain
+### V2 — Backlog priorisé (session stratégique 2026-03-27)
+
+> **Vision validée :** L'hébreu est le proof of concept. Aleph = plateforme d'apprentissage des langues difficiles pour les gens sérieux. Ambition : au-delà de l'hébreu dans les versions futures.
+
+#### PRIORITÉ 1 — Onboarding + 18 decks thématiques (BLOQUANT pour la croissance)
+Les 18 decks thématiques font PARTIE de l'onboarding — pas une feature secondaire.
+
+**Onboarding en 3 étapes :**
+1. Expliquer la raison d'être (FSRS, vraie progression, anti-Duolingo)
+2. Expliquer le fonctionnement : flashcards → schedule → practice lié aux cartes qu'on connaît
+3. Choisir 1-2 decks parmi les 18 thèmes → premier set de cartes → première session → "aha moment" en < 3 min
+
+**Les 18 decks thématiques :** (1) Bases essentielles — alphabet, salutations, mots de base ; (2) Temps & dates ; (3) Nombres & quantités ; (4) Personnes & identité — pronoms, famille, professions ; (5) Maison & quotidien ; (6) Nourriture & cuisine ; (7) Vêtements & apparence ; (8) Corps & santé ; (9) Lieux & déplacements — ville, transports, voyage ; (10) Shopping & argent ; (11) Travail & business ; (12) Technologie & communication ; (13) Verbes essentiels — quotidien, mouvement, irréguliers ; (14) Expressions & phrases utiles ; (15) Émotions & opinions ; (16) Nature & environnement — animaux, météo ; (17) Loisirs & vie sociale ; (18) Connecteurs & grammaire. Migration `migration_007_onboarding.sql` ✅ appliquée en DB.
+
+#### PRIORITÉ 2 — Progression narrative
+Transformer les stats sèches en jalons de vie réelle :
+- "Tu connais 47 mots → ~15% d'une conversation quotidienne"
+- "À 200 mots, tu pourras commander dans un restaurant"
+- "À 500 mots, tu comprends la plupart des conversations basiques"
+Intégrée dans le dashboard. Motivation intrinsèque sans gamification creuse.
+
+#### PRIORITÉ 3 — Smart Capture (photo + texte → cartes)
+Feature virale = growth mechanic principal. Photo d'un menu / texte copié d'un article → cartes générées en 10 secondes. Bridge entre l'app et la vie réelle. C'est CE DONT LES GENS PARLENT à leurs amis.
+Nécessite : API Vision Claude pour les images, UI de validation des mots extraits, dédup avec deck existant.
+
+#### PRIORITÉ 4 — Newsflash
+5 phrases d'actualité/jour en hébreu, calibrées sur le niveau, chaque mot cliquable → carte. Installe l'habit quotidien indépendamment du schedule FSRS. Job quotidien Claude Haiku + source RSS/API news.
+
+#### PRIORITÉ 5 — Chat AI Tutor (full)
+Tuteur qui connaît TON deck, tes lacunes, tes mots récents. Pas un chatbot générique — construit la conversation à partir de ce que le user sait déjà. Ancre émotionnelle + justification abonnement Premium. 50 msg/jour, Sonnet + contexte riche (profil, deck, 20 dernières cartes, page courante).
+
+#### PRIORITÉ 6 — Songs
+Attachement émotionnel à la langue. Chansons libres de droits incluses, chansons sous droits = Premium (Musixmatch/Genius API). Paroles hébreu avec traduction ligne par ligne, tap-to-translate. Ultra-partageable = canal content TikTok/Instagram.
+
+#### PRIORITÉ 7 — Communauté (moat de defensibilité)
+- Ajouter des amis + voir leur progression
+- Partager des decks entre amis
+- Cohort-based learning (groupe qui apprend ensemble)
+- Leaderboard de cartes révisées entre amis (gamification sociale légère)
+Switching cost émotionnel + social. Réseau d'effets.
+
+---
+
+### Distribution — 4 canaux validés
+
+1. **Content TikTok/Instagram** — coût quasi zéro, reach énorme. Angle : "Duolingo ne t'apprend pas vraiment à parler." + demos Smart Capture, Songs. Meilleur canal pour acquisition organique.
+2. **Communautés existantes** — Hillel, synagogues, Birthright alumni, Taglit, ulpans, organisations pro-Israel
+3. **B2B** — écoles juives, ulpans, organisations communautaires
+4. **SEO** — "how to learn Hebrew" — volume faible mais intent fort (serious learners)
+Meta Pixel à installer avant toute campagne paid : tracking signup + landing page → Custom Audiences.
+
+### Defensibilité — Les vrais moats
+
+1. **Données utilisateur** — deck personnel, historique, lacunes identifiées. Switching cost réel.
+2. **Modèle de correction fine-tuné** — logger toutes les paires (réponse user → correction idéale). C'est LE moat technique à construire dès maintenant (infra de logging). Plus d'users = meilleur modèle = flywheel.
+3. **Communauté** — decks partagés, amis, cohorts.
+4. **Contenu authentique** — Smart Capture, Songs, Newsflash ancrent l'app dans la vie réelle.
+
+### Expansion multilingual
+Hébreu → Arabe/Persan (sémitiques) → toute langue difficile.
+Pitch dans 24 mois : "Aleph est la plateforme d'apprentissage des langues difficiles pour les gens sérieux." Marché : ~50M personnes.
+
+---
+
+### Reste du backlog (non priorisé)
 
 | Feature | Effort | Notes |
 |---------|--------|-------|
-| **Onboarding** | M | Retiré de V1 pour finir l'UI d'abord. Concept repensé : (1) Demander le niveau (A1/A2/B1/B2) — envisager aussi "niveau zéro : connaît-il les lettres ?" pour gérer ce cas limite. (2) Expliquer la logique de l'app façon "guided tour" en montrant l'interface : LEARN = apprendre/réviser vocabulaire + conjugaison ; PRACTICE = s'entraîner à parler en hébreu, basé sur les cartes que le user a créées — donc les deux piliers sont liés, parler avec ce qu'on connaît. (3) Inviter le user à créer sa première carte (pas d'import aveugle). (4) Proposer ensuite d'ajouter **20 mots** selon son niveau (pas 150) et afficher la liste des 20 mots pour qu'il voie ce qu'il va apprendre. Note : ne pas proposer l'import avant que le user comprenne la logique — c'est le problème de la V1. Migration `migration_007_onboarding.sql` ✅ appliquée en DB. |
-| **System decks v2 — 18 catégories thématiques** | L | Remplace les decks A1/A2/B1 génériques par des decks thématiques granulaires : (1) Bases essentielles — alphabet, salutations, mots de base ; (2) Temps & dates — jours, mois, saisons, l'heure, expressions ; (3) Nombres & quantités ; (4) Personnes & identité — pronoms, famille, professions, nationalités ; (5) Maison & quotidien ; (6) Nourriture & cuisine — fruits, légumes, viande, boissons, plats ; (7) Vêtements & apparence — couleurs, description physique ; (8) Corps & santé — parties du corps, médecine ; (9) Lieux & déplacements — ville, transports, voyage ; (10) Shopping & argent ; (11) Travail & business ; (12) Technologie & communication ; (13) Verbes essentiels — quotidien, mouvement, irréguliers ; (14) Expressions & phrases utiles ; (15) Émotions & opinions ; (16) Nature & environnement — animaux, météo ; (17) Loisirs & vie sociale ; (18) Connecteurs & grammaire — prépositions, conjonctions, adverbes. Nécessite nouveau seed script + UI de browsing par catégorie. |
-| **Chat AI full** | M | 50 msg/jour, Sonnet + contexte riche |
-| **Talk mode** | L | Conversation libre en hébreu, 3 sessions/sem × 10 éch. |
+| **Talk mode** | L | Conversation libre en hébreu |
 | **Sprint mode** | S | Session 10 min haute intensité |
 | **PWA / offline** | L | Service worker, sync |
 | **Interface language** | M | FR/ES/IT — langue de traduction des cartes |
-| **Error monitoring** | S | Sentry (client + serveur) + error boundaries React + alerting Vercel 5xx. Pas nécessaire en v1 (beta fermée amis). |
-| **Monétisation / Premium** | M | Définir le modèle (abonnement, one-time, app store ?) + gating features (is_premium en DB). Étudier App Store vs web-only vs les deux. Pas de Stripe tant que le canal de distribution n'est pas clair. |
-| **Premium TTS — Voix hébraïques naturelles** | S | Remplace la Web Speech API actuelle (accent synthétique) par une vraie voix hébraïque. Feature Premium uniquement. Choix entre 2-3 voix (ex. voix masculine + féminine + "radio"). Candidats retenus : (1) **ElevenLabs** (Multilingual v2) — meilleure qualité absolue, des dizaines de voix hébraïques, ~$180-300/1M chars ; (2) **Google WaveNet** — bon rapport qualité/prix, 4 voix he-IL, $16/1M chars, 1M gratuit/mois ; (3) **Azure Neural** — 2 voix (Hila féminine + Avri masculin), $16/1M chars. OpenAI TTS à exclure : accent américain fort en hébreu, signalé par de nombreux users. Architecture recommandée : **caching agressif** — pré-générer l'audio de chaque carte une fois, stocker dans Supabase Storage/CDN → coût marginal après setup initial. Seules les phrases de Practice (saisies librement) nécessitent du TTS temps réel. |
-| **Smart Card Capture** | M | Enrichir le flow "Add new cards" avec des sources d'entrée libres au-delà du texte manuel. Le user peut soumettre : (1) **Photo** (menu de restaurant, panneau, affiche, livre) → OCR hébreu + extraction des mots inconnus → génération de cartes ; (2) **Voice note** → transcription audio → extraction des mots ; (3) **Texte libre** collé (article, SMS, email) → extraction automatique des mots nouveaux. Dans tous les cas : Claude identifie les mots hébreux, les compare au deck existant (dédup), propose une sélection que le user valide avant ajout. Nécessite : API Vision (Claude) pour les images, API Whisper ou équivalent pour l'audio, UI de validation des mots extraits. |
-| **Resources** | M | Onglet dédié "Resources" — base de connaissances grammaticales pour les users qui veulent comprendre ce qu'ils apprennent, pas seulement mémoriser. Contenu statique organisé par thèmes : (1) L'alphabet et la prononciation ; (2) Les racines (שורש) et la logique des mots ; (3) Le présent — binyanim, accords genre/nombre ; (4) Le passé — conjugaisons par binyan, verbes irréguliers (creux, ל״ה, etc.) ; (5) Le futur ; (6) L'impératif ; (7) Les accords nom-adjectif (genre, nombre, défini) ; (8) L'article défini ה et ses règles ; (9) Les pronoms (personnels, possessifs, démonstratifs) ; (10) La construction סמיכות (état construit) ; (11) Les prépositions et leurs déclinaisons (ב, ל, מ, עם…) ; (12) Les mots invariables (adverbes, conjonctions, connecteurs) ; (13) Les nombres et leur accord de genre. Format : pages claires avec exemples interactifs — mots hébreux cliquables → ajout en flashcard. Contenu rédigé une fois, maintenu statiquement (pas de génération IA à chaque vue). |
-| **Song Learning** | L | Section SONGS dédiée. Le user choisit une chanson hébraïque qu'il veut apprendre par cœur. Deux cas : (1) **Chansons libres de droits** (folk israélien, chansons traditionnelles) — paroles stockées directement, pas de contrainte. (2) **Chansons sous droits** (ex. "Rak Shelakh" d'Omer Adam) — nécessite une API de paroles licenciée (Musixmatch ou Genius) → feature **Premium uniquement**. UI : affichage du texte complet hébreu avec traduction ligne par ligne, chaque mot cliquable → ajout en flashcard. Mémorisation progressive possible (masquer des mots, karaoké-mode, etc.). Nécessite : choix de l'API paroles + gestion des licences, UI song browser/search, intégration tap-to-translate sur les paroles, éventuelle section "mes chansons sauvegardées". |
-| **Newsflash** | M | Le user sélectionne ses centres d'intérêt (food, politique, économie, sport, culture, tech…). Chaque jour, il reçoit 5-10 bullet points d'actualité rédigés en hébreu, calibrés sur son niveau. Chaque mot hébreu est cliquable → modal de preview → ajout en flashcard. Nécessite : (1) stockage des préférences user, (2) job quotidien de génération (Claude Haiku + source d'actualités — RSS ou API news), (3) UI "daily feed" dans le dashboard ou section dédiée, (4) déduplication avec les cartes existantes du user. Potentiellement très engageant pour la rétention (contenu frais chaque jour). |
-| **Landing page** | M | Page publique avant le signup. Nécessaire pour toute acquisition. Doit inclure le Meta Pixel dès le début pour accumuler des données avant les campagnes. |
-| **Repo privé + Vercel Pro** | S | Repo GitHub actuellement public (workaround beta). Avant lancement public : repasser le repo en privé sur GitHub + passer Vercel en Pro ($20/mois) pour débloquer les déploiements depuis repos privés. |
-| **Rate limiting** | S | Limiter les appels aux endpoints IA (génération de cartes, correction, conjugaison) par user/IP pour éviter les abus coûteux. Pas urgent en beta fermée, indispensable avant ouverture publique. |
-| **Distribution** | — | Canal envisagé : comptes spécialisés Instagram/TikTok (organique), Meta Ads. Définir la cible (francophone ? anglophone ? les deux ?), le positionnement (DLI-inspired, serious learner), et le funnel landing page → signup → first session. **Meta Pixel** à installer avant toute campagne : tracking signup + landing page visits → Custom Audiences (email match), Lookalike Audiences, optimisation automatique des pubs. Sans pixel = Meta tire dans le vide, coût pub 2-3× plus élevé. 10 lignes de code dans le `<head>` + event `CompleteRegistration` post-signup. |
+| **Error monitoring** | S | Sentry + error boundaries React. Pas urgent en beta fermée. |
+| **Monétisation / Premium** | M | Stripe + is_premium en DB. Pas avant que la distribution soit claire. |
+| **Premium TTS** | S | ElevenLabs ou Google WaveNet (he-IL). Caching agressif dans Supabase Storage. |
+| **Resources** | M | Base de connaissances grammaticales statique, mots cliquables → cartes. |
+| **Landing page** | M | Nécessaire avant toute acquisition publique. Meta Pixel dès le départ. |
+| **Repo privé + Vercel Pro** | S | Avant lancement public. |
+| **Rate limiting** | S | Indispensable avant ouverture publique. |
 
 ---
 
