@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: { word: string; level?: "A1" | "A2" | "B1" | "B2" };
+  let body: { word: string; level?: "A1" | "A2" | "B1" | "B2"; context?: string };
   try {
     body = await request.json();
   } catch {
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
 
   const word = body.word.trim().slice(0, 100);
   const level = body.level ?? "A1";
+  const context = body.context?.trim().slice(0, 300) ?? undefined;
 
   const { data: profile } = await supabase
     .from("users")
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     cardData = cached;
   } else {
     try {
-      cardData = await generateCardContent(word, level);
+      cardData = await generateCardContent(word, level, context);
     } catch (err) {
       console.error("[cards] Generation error:", err);
       return NextResponse.json({ error: "Card generation failed" }, { status: 500 });

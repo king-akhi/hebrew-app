@@ -18,7 +18,7 @@ interface Card {
 
 // ── Modal ────────────────────────────────────────────────────────────────────
 
-function HebrewWordModal({ word, onClose }: { word: string; onClose: () => void }) {
+function HebrewWordModal({ word, contextSentence, onClose }: { word: string; contextSentence?: string; onClose: () => void }) {
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ function HebrewWordModal({ word, onClose }: { word: string; onClose: () => void 
       const res = await fetch("/api/cards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ word }),
+        body: JSON.stringify({ word, ...(contextSentence ? { context: contextSentence } : {}) }),
       });
       const data = await res.json();
       if (res.status === 429) {
@@ -305,7 +305,7 @@ function ConfirmBubble({
 
 type WordState = "idle" | "confirming" | "open";
 
-export function HebrewWord({ word, display }: { word: string; display?: string }) {
+export function HebrewWord({ word, display, contextSentence }: { word: string; display?: string; contextSentence?: string }) {
   const [state, setState] = useState<WordState>("idle");
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -342,7 +342,7 @@ export function HebrewWord({ word, display }: { word: string; display?: string }
       )}
 
       {state === "open" && (
-        <HebrewWordModal word={word} onClose={() => setState("idle")} />
+        <HebrewWordModal word={word} contextSentence={contextSentence} onClose={() => setState("idle")} />
       )}
     </span>
   );
@@ -367,7 +367,7 @@ export function ClickableHebrew({
         const clean = token.replace(/^[.,!?;:״׳"«»()\[\]]+|[.,!?;:״׳"«»()\[\]]+$/g, "").trim();
         if (!clean) return <span key={i}>{token}</span>;
         // Preserve original display (with punctuation) but look up clean form
-        return <HebrewWord key={i} word={clean} display={token} />;
+        return <HebrewWord key={i} word={clean} display={token} contextSentence={text} />;
       })}
     </span>
   );
