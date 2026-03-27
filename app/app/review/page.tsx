@@ -249,7 +249,7 @@ export default function ReviewPage() {
   const isVerb = card.word_type === "verb";
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto">
+    <div className="space-y-3 max-w-xl mx-auto">
       {/* Progress */}
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
@@ -273,20 +273,20 @@ export default function ReviewPage() {
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
 
         {/* Front */}
-        <div className="p-8 text-center space-y-3 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="p-5 text-center space-y-2 border-b border-zinc-100 dark:border-zinc-800">
           {isHEtoEN ? (
             /* HE → EN : show Hebrew (infinitive for verbs) */
             <>
               {card.word_type === "verb" && card.grammar_info?.infinitive ? (
                 <>
                   <div className="flex items-center justify-center gap-3">
-                    <p className="text-5xl font-medium leading-tight tracking-wide" dir="rtl" lang="he">
+                    <p className="text-4xl font-medium leading-tight tracking-wide" dir="rtl" lang="he">
                       {card.grammar_info.infinitive as string}
                     </p>
                     <ListenButton text={card.grammar_info.infinitive as string} size="md" />
                   </div>
                   {card.grammar_info.infinitive_transliteration && (
-                    <p className="text-zinc-400 text-base">
+                    <p className="text-zinc-400 text-sm">
                       {card.grammar_info.infinitive_transliteration as string}
                     </p>
                   )}
@@ -294,7 +294,7 @@ export default function ReviewPage() {
               ) : (
                 <>
                   <div className="flex items-center justify-center gap-3">
-                    <p className="text-5xl font-medium leading-tight tracking-wide" dir="rtl" lang="he">
+                    <p className="text-4xl font-medium leading-tight tracking-wide" dir="rtl" lang="he">
                       {card.hebrew}
                     </p>
                     <ListenButton text={card.hebrew} size="md" />
@@ -304,8 +304,8 @@ export default function ReviewPage() {
                       cardId={card.card_id}
                       field="transliteration"
                       value={card.transliteration}
-                      display={<span className="text-zinc-400 text-base">{card.transliteration}</span>}
-                      inputClassName="text-zinc-400 text-base w-48 text-center"
+                      display={<span className="text-zinc-400 text-sm">{card.transliteration}</span>}
+                      inputClassName="text-zinc-400 text-sm w-48 text-center"
                       onSave={(v) => handleFieldSave(card.card_id, "transliteration", v)}
                     />
                   )}
@@ -314,7 +314,7 @@ export default function ReviewPage() {
             </>
           ) : (
             /* EN → HE : show English */
-            <p className="text-4xl font-medium">{card.english}</p>
+            <p className="text-3xl font-medium">{card.english}</p>
           )}
 
           {/* Direction indicator */}
@@ -325,21 +325,21 @@ export default function ReviewPage() {
 
         {/* Back: revealed content */}
         {revealed ? (
-          <div className="p-6 space-y-4">
+          <div className="p-4 space-y-3">
             {isHEtoEN ? (
               /* HE → EN revealed: show English */
               <EditableField
                 cardId={card.card_id}
                 field="english"
                 value={card.english}
-                display={<span className="text-xl font-semibold">{card.english}</span>}
-                inputClassName="text-xl font-semibold w-48"
+                display={<span className="text-lg font-semibold">{card.english}</span>}
+                inputClassName="text-lg font-semibold w-48"
                 onSave={(v) => handleFieldSave(card.card_id, "english", v)}
               />
             ) : (
               /* EN → HE revealed: show Hebrew + transliteration (infinitive for verbs) */
               <div className="flex items-center gap-3">
-                <p className="text-3xl font-medium" dir="rtl" lang="he">
+                <p className="text-2xl font-medium" dir="rtl" lang="he">
                   {card.word_type === "verb" && card.grammar_info?.infinitive
                     ? card.grammar_info.infinitive as string
                     : card.hebrew}
@@ -369,8 +369,17 @@ export default function ReviewPage() {
               </div>
             )}
 
+            {/* Grammar box — directly below the word */}
+            <GrammarBox
+              wordType={card.word_type}
+              grammarInfo={card.grammar_info as Parameters<typeof GrammarBox>[0]["grammarInfo"]}
+              fallback={card.grammar_notes}
+              cardId={card.word_type === "verb" ? card.card_id : undefined}
+            />
+
             {card.example_sentence_he && (
               <div className="space-y-1">
+                <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Example</p>
                 <div className="flex items-start justify-end gap-2">
                   <ListenButton text={card.example_sentence_he} size="sm" />
                   <EditableField
@@ -395,13 +404,6 @@ export default function ReviewPage() {
               </div>
             )}
 
-            <GrammarBox
-              wordType={card.word_type}
-              grammarInfo={card.grammar_info as Parameters<typeof GrammarBox>[0]["grammarInfo"]}
-              fallback={card.grammar_notes}
-              cardId={card.word_type === "verb" ? card.card_id : undefined}
-            />
-
             <EditableField
               cardId={card.card_id}
               field="user_notes"
@@ -421,7 +423,7 @@ export default function ReviewPage() {
               onChange={(newTags) => handleTagsChange(card.card_id, newTags)}
             />
 
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center justify-between">
               {card.reps > 0 ? (
                 <p className="text-xs text-zinc-300 dark:text-zinc-600">
                   Reviewed {card.reps} time{card.reps !== 1 ? "s" : ""} · {card.lapses} lapse{card.lapses !== 1 ? "s" : ""}
@@ -455,7 +457,7 @@ export default function ReviewPage() {
             </div>
           </div>
         ) : (
-          <div className="p-6 flex justify-center">
+          <div className="p-5 flex justify-center">
             <button
               onClick={() => setRevealed(true)}
               className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
