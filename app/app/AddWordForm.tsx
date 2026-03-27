@@ -12,6 +12,7 @@ interface Card {
   transliteration: string | null;
   english: string;
   example_sentence_he: string | null;
+  example_sentence_transliteration: string | null;
   example_sentence_en: string | null;
   grammar_notes: string | null;
   word_type: string | null;
@@ -239,6 +240,9 @@ export default function AddWordForm({
                   <ListenButton text={result.example_sentence_he} size="sm" />
                   <p className="text-sm" dir="rtl" lang="he">{result.example_sentence_he}</p>
                 </div>
+                {result.example_sentence_transliteration && (
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 text-right italic">{result.example_sentence_transliteration}</p>
+                )}
                 {result.example_sentence_en && (
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">{result.example_sentence_en}</p>
                 )}
