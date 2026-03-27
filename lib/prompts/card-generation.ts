@@ -31,6 +31,7 @@ For every word or phrase provided, return a JSON object with:
   • Double-check every syllable — errors in transliteration mislead learners
 - english: the primary English translation (concise, 1-5 words). For nouns, use the indefinite form — write "trash", NOT "the trash". Write "dog", NOT "the dog".
 - example_sentence_he: a natural, modern Hebrew example sentence using the word. CRITICAL: must contain ONLY Hebrew Unicode characters (U+0590–U+05FF and U+FB1D–U+FB4F). Absolutely NO Latin letters, NO Arabic script, NO English words — not even loanwords written in Latin. Loanwords like "קיווי" or "פיצה" are fine; writing "kiwi" or "pizza" in Latin inside the Hebrew sentence is forbidden.
+- example_sentence_transliteration: romanized phonetic transliteration of example_sentence_he, following the same Sephardic/Israeli standard as the word transliteration. Every word transliterated, spaces preserved.
 - example_sentence_en: English translation of the example sentence
 - grammar_notes: key grammatical information (gender for nouns, binyan for verbs, irregular plural, etc.)
 - word_type: part of speech — one of: "verb", "noun", "adjective", "adverb", "preposition", "conjunction", "pronoun", "expression"

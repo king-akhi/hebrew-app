@@ -48,6 +48,7 @@ export type SavedCard = {
   transliteration: string | null;
   english: string;
   example_sentence_he: string | null;
+  example_sentence_transliteration: string | null;
   example_sentence_en: string | null;
   grammar_notes: string | null;
   word_type: string | null;
@@ -96,6 +97,7 @@ export async function saveCard(
       transliteration: cardData.transliteration ?? null,
       english: cardData.english,
       example_sentence_he: cardData.example_sentence_he ?? null,
+      example_sentence_transliteration: cardData.example_sentence_transliteration ?? null,
       example_sentence_en: cardData.example_sentence_en ?? null,
       grammar_notes: cardData.grammar_notes ?? null,
       word_type: cardData.word_type ?? null,

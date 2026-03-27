@@ -25,6 +25,7 @@ interface DueCard {
   transliteration: string | null;
   english: string;
   example_sentence_he: string | null;
+  example_sentence_transliteration: string | null;
   example_sentence_en: string | null;
   grammar_notes: string | null;
   word_type: string | null;
@@ -391,6 +392,11 @@ export default function ReviewPage() {
                     onSave={(v) => handleFieldSave(card.card_id, "example_sentence_he", v)}
                   />
                 </div>
+                {card.example_sentence_transliteration && (
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 text-right italic">
+                    {card.example_sentence_transliteration}
+                  </p>
+                )}
                 {card.example_sentence_en && (
                   <EditableField
                     cardId={card.card_id}
