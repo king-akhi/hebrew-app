@@ -53,6 +53,33 @@
 
 ---
 
+## Session 2026-03-27 (suite 2) — Lancement + UI
+
+### Déploiement
+- [x] **Vercel déployé** — URL prod : `hebrew-app-beryl.vercel.app`. Repo GitHub public (workaround Vercel Hobby). À repasser privé en V2 (voir backlog).
+- [x] **Branche `dev`** — workflow : commits sur `dev`, merge dans `main` pour déployer. Jamais de push direct sur `main`.
+- [x] **Migration 008 appliquée** — `example_sentence_transliteration` ajouté sur `cards` + `system_cards`.
+- [x] **Signup** — email confirmation désactivée dans Supabase, redirect direct vers `/app` après signup.
+
+### Fixes
+- [x] **middleware.ts supprimé** — doublon de `proxy.ts` (Next.js 16 renomme middleware → proxy). Causait une erreur de build.
+- [x] **Signup password** — minLength harmonisé à 8 chars (était 6 au signup, 8 au changement de mot de passe).
+- [x] **System decks import 429** — erreur "daily limit reached" affichée dans le modal + bouton désactivé (était silencieux avant).
+- [x] **Voice transcription** — `.join("")` → `.join(" ")` + trim : les mots ne se collent plus sur iPhone.
+- [x] **Practice tenses** — l'API `practice/exercises` lit maintenant `known_tenses` du user et le passe à Claude comme contrainte. Plus d'exercices au passé/futur si non débloqués.
+
+### UI
+- [x] **Review card** — GrammarBox (genre/pluriel) déplacé juste après la traduction, avant la phrase. Label "Example" ajouté. Compactage général (padding réduit, text-4xl au lieu de 5xl) pour éviter le scroll sur iPhone.
+- [x] **Phonétique phrase exemple** — champ `example_sentence_transliteration` généré par Claude (nouvelles cartes), affiché sous la phrase hébraïque dans : review page, AddWordForm, BatchAddModal, vocabulary page.
+- [x] **Vocabulary page** — même format que review : GrammarBox en premier, label "Example", phonétique.
+
+### En attente de push prod (sur branche `dev`)
+- Vocabulary + BatchAddModal phonétique
+- Voice fix
+- Practice tenses fix
+
+---
+
 ## Session 2026-03-27 (suite) — Audit lancement
 
 ### Livré
