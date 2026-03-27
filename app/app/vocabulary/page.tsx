@@ -17,6 +17,7 @@ interface VocabCard {
   transliteration: string | null;
   english: string;
   example_sentence_he: string | null;
+  example_sentence_transliteration: string | null;
   example_sentence_en: string | null;
   grammar_notes: string | null;
   word_type: string | null;
@@ -238,14 +239,28 @@ export default function VocabularyPage() {
 
                 {/* Expanded detail */}
                 {isOpen && (
-                  <div className="px-5 pb-5 space-y-4 border-t border-zinc-100 dark:border-zinc-800 pt-4">
+                  <div className="px-5 pb-5 space-y-3 border-t border-zinc-100 dark:border-zinc-800 pt-4">
+                    {/* Grammar info — above example */}
+                    <GrammarBox
+                      wordType={card.word_type}
+                      grammarInfo={card.grammar_info as Parameters<typeof GrammarBox>[0]["grammarInfo"]}
+                      fallback={card.grammar_notes}
+                      cardId={card.word_type === "verb" ? card.card_id : undefined}
+                    />
+
                     {/* Example sentence */}
                     {card.example_sentence_he && (
                       <div className="space-y-1">
+                        <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Example</p>
                         <div className="flex items-start justify-end gap-2">
                           <ListenButton text={card.example_sentence_he} size="sm" />
                           <ClickableHebrew text={card.example_sentence_he} className="text-base" />
                         </div>
+                        {card.example_sentence_transliteration && (
+                          <p className="text-xs text-zinc-400 dark:text-zinc-500 text-right italic">
+                            {card.example_sentence_transliteration}
+                          </p>
+                        )}
                         {card.example_sentence_en && (
                           <p className="text-sm text-zinc-500 dark:text-zinc-400">
                             {card.example_sentence_en}
@@ -253,14 +268,6 @@ export default function VocabularyPage() {
                         )}
                       </div>
                     )}
-
-                    {/* Grammar info */}
-                    <GrammarBox
-                      wordType={card.word_type}
-                      grammarInfo={card.grammar_info as Parameters<typeof GrammarBox>[0]["grammarInfo"]}
-                      fallback={card.grammar_notes}
-                      cardId={card.word_type === "verb" ? card.card_id : undefined}
-                    />
 
                     {/* User notes (editable) */}
                     <EditableField
