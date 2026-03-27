@@ -111,7 +111,9 @@ export default function PracticePage() {
       const transcript = Array.from(event.results as unknown[])
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .map((r: any) => r[0].transcript)
-        .join("");
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
       setAnswer(transcript);
     };
     recognition.start();

@@ -29,6 +29,14 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(parseInt(limitParam ?? "10", 10) || 10, 50);
   const sessionType = request.nextUrl.searchParams.get("type") ?? "random";
 
+  // Fetch user's known_tenses setting
+  const { data: userSettings } = await supabase
+    .from("users")
+    .select("known_tenses")
+    .eq("id", user.id)
+    .single();
+  const knownTenses: string[] = (userSettings as unknown as { known_tenses?: string[] })?.known_tenses ?? ["present"];
+
   // Fetch up to 20 of the user's cards, ordered by reps desc so we
   // prefer words they've already started learning over brand-new ones.
   const { data: fsrsRows, error: fetchError } = await supabase
@@ -113,7 +121,7 @@ export async function GET(request: NextRequest) {
       messages: [
         {
           role: "user",
-          content: `Session type: ${sessionType}\n\nGenerate ${selected.length} exercises for these vocabulary cards:\n\n${cardsText}`,
+          content: `Session type: ${sessionType}\nAllowed verb tenses: ${knownTenses.join(", ")} — NEVER generate exercises requiring tenses not in this list.\n\nGenerate ${selected.length} exercises for these vocabulary cards:\n\n${cardsText}`,
         },
       ],
     });
