@@ -31,7 +31,7 @@ export async function signUp(
   });
 
   if (error) return { error: error.message };
-  return { success: true };
+  redirect("/app");
 }
 
 export async function signOut(): Promise<void> {
