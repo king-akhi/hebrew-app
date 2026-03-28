@@ -55,10 +55,12 @@ export async function POST(request: Request) {
       .map((block) => ("text" in block ? block.text : ""))
       .join("");
 
-    const result: CorrectionResult = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error(`No JSON in correction response: ${raw.slice(0, 200)}`);
+    const result: CorrectionResult = JSON.parse(jsonMatch[0]);
 
     // Log to DB (fire-and-forget — do not block the response)
-    void supabase.from("correction_logs").insert({
+    supabase.from("correction_logs").insert({
       user_id: user.id,
       session_id: body.session_id ?? null,
       exercise_text: body.exercise_text,
@@ -66,7 +68,7 @@ export async function POST(request: Request) {
       correction_json: result,
       model_used: "claude-haiku-4-5-20251001",
       created_at: new Date().toISOString(),
-    });
+    }).then(() => {}, () => {});
 
     return NextResponse.json(result);
   } catch (err) {
