@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ListenButton from "@/components/ListenButton";
@@ -122,6 +122,49 @@ export default function PracticePage() {
   const resolvedCount = customCount ? parseInt(customCount, 10) || selectedCount : selectedCount;
   const effectiveType: SessionType = isConjugationMode ? "conjugation" : sessionType;
 
+  // ── Pre-fetch helpers ─────────────────────────────────────────
+  type FetchResult = { exercises: AnyExercise[]; empty: boolean; hint?: string };
+
+  async function doFetch(count: number, type: SessionType, cardId: string | null): Promise<FetchResult> {
+    let res: Response;
+    if (type === "conjugation") {
+      const params = new URLSearchParams({ count: String(count) });
+      if (cardId) params.set("cardId", cardId);
+      res = await fetch(`/api/conjugation/exercises?${params}`);
+    } else {
+      res = await fetch(`/api/practice/exercises?limit=${count}&type=${type}`);
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "Failed to load exercises");
+    return data;
+  }
+
+  // Stores the in-flight or resolved prefetch so "Start" can consume it instantly
+  const prefetchRef = useRef<{
+    count: number; type: SessionType; cardId: string | null;
+    promise: Promise<FetchResult>;
+  } | null>(null);
+
+  // Kick off a prefetch as soon as the setup screen is visible (and whenever settings change)
+  const prefetchKey = useMemo(
+    () => `${resolvedCount}:${effectiveType}:${cardIdParam}`,
+    [resolvedCount, effectiveType, cardIdParam]
+  );
+
+  useEffect(() => {
+    if (stage !== "setup") return;
+    const ref = prefetchRef.current;
+    const key = `${resolvedCount}:${effectiveType}:${cardIdParam}`;
+    if (ref && `${ref.count}:${ref.type}:${ref.cardId}` === key) return; // already prefetching
+    prefetchRef.current = {
+      count: resolvedCount,
+      type: effectiveType,
+      cardId: cardIdParam,
+      promise: doFetch(resolvedCount, effectiveType, cardIdParam),
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, prefetchKey]);
+
   const loadExercises = useCallback(async () => {
     setStage("loading");
     setLoadError(null);
@@ -135,17 +178,15 @@ export default function PracticePage() {
     setDone(false);
 
     try {
-      let res: Response;
-      if (effectiveType === "conjugation") {
-        const params = new URLSearchParams({ count: String(resolvedCount) });
-        if (cardIdParam) params.set("cardId", cardIdParam);
-        res = await fetch(`/api/conjugation/exercises?${params}`);
-      } else {
-        res = await fetch(`/api/practice/exercises?limit=${resolvedCount}&type=${effectiveType}`);
-      }
+      const ref = prefetchRef.current;
+      const key = `${resolvedCount}:${effectiveType}:${cardIdParam}`;
+      const matchesPrefetch = ref && `${ref.count}:${ref.type}:${ref.cardId}` === key;
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to load exercises");
+      const data = matchesPrefetch
+        ? await ref!.promise
+        : await doFetch(resolvedCount, effectiveType, cardIdParam);
+
+      prefetchRef.current = null;
 
       if (data.empty) {
         setEmpty(true);

@@ -46,6 +46,10 @@ function HebrewWordModal({ word, contextSentence, onClose }: { word: string; con
         throw new Error(data.error ?? "Failed to generate card");
       } else {
         setCard(data.card);
+        // Pre-warm conjugation cache for verbs (fire-and-forget)
+        if (data.card?.word_type === "verb") {
+          fetch(`/api/conjugation?cardId=${data.card.id}`).catch(() => {});
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -126,10 +130,19 @@ function HebrewWordModal({ word, contextSentence, onClose }: { word: string; con
         </button>
 
         {loading && (
-          <div className="flex flex-col items-center justify-center h-48 gap-3">
-            <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-900 dark:border-zinc-600 dark:border-t-zinc-100 rounded-full animate-spin" />
-            <p className="text-sm text-zinc-400">Generating flashcard…</p>
-          </div>
+          <>
+            {/* Show the clicked word immediately — skeleton for the details */}
+            <div className="p-6 text-center space-y-2 border-b border-zinc-100 dark:border-zinc-800">
+              <p className="text-4xl font-medium leading-tight" dir="rtl" lang="he">{word}</p>
+              <div className="h-3.5 w-14 bg-zinc-100 dark:bg-zinc-800 rounded-full animate-pulse mx-auto" />
+            </div>
+            <div className="p-5 space-y-3">
+              <div className="h-5 w-28 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+              <div className="h-3.5 w-48 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+              <div className="h-3.5 w-36 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+              <p className="text-xs text-zinc-400 pt-1">Generating flashcard…</p>
+            </div>
+          </>
         )}
 
         {limitState && !loading && (

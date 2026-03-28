@@ -75,6 +75,10 @@ export default function AddWordForm({
         setTags(card.tags ?? []);
         setWord("");
         router.refresh();
+        // Pre-warm conjugation cache for verbs (fire-and-forget)
+        if (card.word_type === "verb") {
+          fetch(`/api/conjugation?cardId=${card.id}`).catch(() => {});
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -104,6 +108,9 @@ export default function AddWordForm({
           setTags(card.tags ?? []);
           setWord("");
           router.refresh();
+          if (card.word_type === "verb") {
+            fetch(`/api/conjugation?cardId=${card.id}`).catch(() => {});
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
