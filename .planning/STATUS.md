@@ -96,49 +96,24 @@
 - [x] **System cache bypassé si contexte** — pour que la détection de noms propres fonctionne même si le mot est en cache.
 - [x] **buildCardUserMessage** — helper extrait de `lib/cards/generate.ts` pour partager le message user entre la route standard et la future route streaming.
 
-#### Performance — EN COURS (streaming, session prochaine)
+#### Performance — LIVRÉ (session 2026-03-29)
 
-**Objectif : génération de carte 2x plus rapide + écrans d'attente engageants**
+**A. Parallélisation `/api/cards`** — ✅
+- `Promise.all([profile, countCardsCreatedToday, checkSystemCache])` — gain ~300-500ms
 
-**A. Parallélisation `/api/cards`** — à faire
-- Auth → puis en parallèle : profile + countCardsCreatedToday + checkSystemCache
-- Gain estimé : 300-500ms
+**B. Streaming SSE `/api/cards/stream`** — ✅ nouveau endpoint
+- Parallel DB checks au démarrage + deck lookup en parallèle avec Claude stream
+- Format SSE : `{t:"chunk",v}` | `{t:"saved",card}` | `{t:"proper_noun",hebrew,english}` | `{t:"error",error}`
+- Cache hit → event `saved` immédiat, pas de chunks
+- Header `X-Accel-Buffering: no`
 
-**B. Streaming SSE `/api/cards/stream`** — à faire (nouveau endpoint)
-Architecture complète décidée :
-- `POST /api/cards/stream` : parallel DB checks → deck lookup en parallèle avec Claude → stream SSE chunks → event `{t:"saved", card}` à la fin
-- Format SSE : `data: {t:"chunk", v:"texte"}\n\n` | `{t:"saved", card}` | `{t:"proper_noun", hebrew, english}` | `{t:"error", error}`
-- Header `X-Accel-Buffering: no` pour éviter le buffering Vercel/nginx
-- Cache hit → event `saved` immédiat (pas de chunks), retour quasi-instantané
-- Utilise `buildCardUserMessage` depuis `lib/cards/generate.ts`
-- `getOrCreateDeck` lancé en parallèle avec le stream Claude (économie ~200ms)
-
-**C. Refactor `AddWordForm`** — à faire
-Machine à états :
-- `stage: "idle" | "streaming" | "done"` remplace `loading: boolean`
-- `streamCard: PartialCard` (fields: hebrew, transliteration, english, example_sentence_he, example_sentence_en)
-- `accumulatedRef` + `streamCardRef` pour extraction sans re-renders inutiles
-- `properNoun` state ajouté
-
-Extraction progressive : regex `"field"\s*:\s*"((?:[^"\\]|\\.)*)"` — détecte chaque champ dès que la `"` fermante est reçue dans le stream. Fields extraits dans l'ordre : hebrew → transliteration → english → example_sentence_he → example_sentence_en.
-
-**D. UI streaming progressive** — à faire (dans AddWordForm)
-- Stage "streaming" : masque le form, affiche la carte en construction
-  - Hebrew → apparaît en grand dès que champ extrait (ou mot tapé en opacité 30% avant)
-  - Transliteration → fade in
-  - English → fade in
-  - Example sentence → fade in
-  - Grammar box + "Added to deck" → apparaît seulement quand event `saved` reçu
-- Messages rotatifs (800ms) : "Analyzing root letters…" / "Checking grammar rules…" / "Building example sentence…" / "Adding transliteration…" / "Finalizing your card…"
-- Fun fact hébreu : bloc bleu sous la carte, 1 fact aléatoire par génération parmi 10 hardcodés
-- Stage "done" : même carte résultat qu'actuellement (result card)
-- `handleBumpLimit` appelle `startStreaming(word)` sans await
-
-**Ordre d'implémentation :**
-1. `lib/prompts/card-generation.ts` — ajouter instruction ordre des champs JSON
-2. `app/api/cards/stream/route.ts` — nouveau endpoint streaming (utilise `buildCardUserMessage`)
-3. `app/api/cards/route.ts` — paralléliser profile + count + cache
-4. `app/app/AddWordForm.tsx` — refactor complet avec streaming + UI progressive
+**C+D. AddWordForm refactoré** — ✅
+- `stage: "idle"|"streaming"|"done"` remplace `loading: boolean`
+- Extraction progressive par regex `"field"\s*:\s*"((?:[^"\\]|\\.)*)"` sur l'accumulation de chunks
+- Hebrew word apparaît immédiatement (opacité 30% si pas encore extrait, 100% dès extrait)
+- Messages rotatifs 800ms : "Analyzing root letters…" etc.
+- Bloc bleu "Did you know?" — 10 fun facts hébreux aléatoires
+- `properNoun` state géré dans le stage "done"
 
 ---
 

@@ -38,17 +38,18 @@ export async function POST(request: Request) {
   const level = body.level ?? "A1";
   const context = body.context?.trim().slice(0, 300) ?? undefined;
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("organization_id, daily_card_limit")
-    .eq("id", user.id)
-    .single();
+  // Parallel: profile + daily count + system cache
+  const [profileResult, createdToday, cached] = await Promise.all([
+    supabase.from("users").select("organization_id, daily_card_limit").eq("id", user.id).single(),
+    countCardsCreatedToday(user.id, supabase),
+    context ? Promise.resolve(null) : checkSystemCache(word, supabase),
+  ]);
 
+  const profile = profileResult.data;
   if (!profile) return NextResponse.json({ error: "User profile not found" }, { status: 404 });
 
   // Enforce daily card limit
   const limit = profile.daily_card_limit ?? DEFAULT_DAILY_LIMIT;
-  const createdToday = await countCardsCreatedToday(user.id, supabase);
   if (createdToday >= limit) {
     return NextResponse.json(
       { error: "daily_limit_reached", limit, created_today: createdToday },
@@ -64,7 +65,6 @@ export async function POST(request: Request) {
   }
 
   let cardData: Record<string, unknown>;
-  const cached = await checkSystemCache(word, supabase);
   if (cached && !context) {
     // Only use system cache when there is no context — context is needed to detect proper nouns
     cardData = cached;

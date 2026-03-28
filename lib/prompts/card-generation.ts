@@ -72,4 +72,5 @@ Rules:
 - Example sentences should be natural and contemporary
 - Grammar notes: brief fallback summary (1 line). The structured data goes in grammar_info; grammar_notes is a short human-readable version
 - grammar_info must always be present and correctly structured for its word_type
+- Output JSON fields in this exact order: hebrew, transliteration, english, example_sentence_he, example_sentence_transliteration, example_sentence_en, grammar_notes, word_type, grammar_info, tags
 - Return ONLY valid JSON, no markdown, no preamble`;
