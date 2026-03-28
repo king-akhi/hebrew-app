@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import StatsPanel from "@/components/StatsPanel";
 import AddCardsMenu from "@/components/AddCardsMenu";
+import ReviewPrefetch from "@/components/ReviewPrefetch";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5">
+      <ReviewPrefetch />
       {/* Header row */}
       <div className="flex items-start justify-between">
         <div>

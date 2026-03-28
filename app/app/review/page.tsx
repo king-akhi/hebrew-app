@@ -85,6 +85,28 @@ export default function ReviewPage() {
   const loadCards = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    // Try to consume a prefetch cached by the dashboard
+    try {
+      const raw = sessionStorage.getItem("aleph_review_prefetch");
+      if (raw) {
+        sessionStorage.removeItem("aleph_review_prefetch");
+        const { cardsData, settingsData, ts } = JSON.parse(raw);
+        if (Date.now() - ts < 45_000) {
+          setCards(cardsData.cards);
+          if (cardsData.cards.length === 0) setDone(true);
+          setSrsIntervals({
+            srs_again_minutes: settingsData.srs_again_minutes ?? DEFAULT_SRS.srs_again_minutes,
+            srs_hard_hours:    settingsData.srs_hard_hours    ?? DEFAULT_SRS.srs_hard_hours,
+            srs_good_days:     settingsData.srs_good_days     ?? DEFAULT_SRS.srs_good_days,
+            srs_easy_days:     settingsData.srs_easy_days     ?? DEFAULT_SRS.srs_easy_days,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {}
+
     try {
       const [cardsRes, settingsRes] = await Promise.all([
         fetch("/api/cards/due?limit=50"),
@@ -196,8 +218,23 @@ export default function ReviewPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-zinc-400">Loading cards…</p>
+      <div className="space-y-3 max-w-xl mx-auto">
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center">
+            <div className="h-3 w-10 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-7 w-24 bg-zinc-100 dark:bg-zinc-800 rounded-lg animate-pulse" />
+          </div>
+          <div className="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full" />
+        </div>
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+          <div className="p-5 text-center space-y-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="h-10 w-32 bg-zinc-100 dark:bg-zinc-800 rounded-lg mx-auto animate-pulse" />
+            <div className="h-3.5 w-20 bg-zinc-100 dark:bg-zinc-800 rounded-full mx-auto animate-pulse" />
+          </div>
+          <div className="p-5 flex justify-center">
+            <div className="h-9 w-28 bg-zinc-100 dark:bg-zinc-800 rounded-lg animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }

@@ -170,9 +170,22 @@ export default function AddWordForm({
       )}
 
       {loading && (
-        <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center py-4">
-          Generating your flashcard…
-        </p>
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+          <div className="p-6 text-center space-y-2 border-b border-zinc-100 dark:border-zinc-800">
+            {/[\u0590-\u05FF]/.test(word) ? (
+              <p className="text-4xl font-medium leading-tight" dir="rtl" lang="he">{word}</p>
+            ) : (
+              <div className="h-10 w-28 bg-zinc-100 dark:bg-zinc-800 rounded-lg mx-auto animate-pulse" />
+            )}
+            <div className="h-3.5 w-14 bg-zinc-100 dark:bg-zinc-800 rounded-full animate-pulse mx-auto" />
+          </div>
+          <div className="p-5 space-y-3">
+            <div className="h-6 w-28 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-4 w-full bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 pt-1">Generating flashcard…</p>
+          </div>
+        </div>
       )}
 
       {/* Daily limit banner */}

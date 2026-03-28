@@ -57,8 +57,8 @@ export async function POST(request: Request) {
 
     const result: CorrectionResult = JSON.parse(raw.replace(/```json|```/g, "").trim());
 
-    // Log to DB
-    await supabase.from("correction_logs").insert({
+    // Log to DB (fire-and-forget — do not block the response)
+    void supabase.from("correction_logs").insert({
       user_id: user.id,
       session_id: body.session_id ?? null,
       exercise_text: body.exercise_text,
