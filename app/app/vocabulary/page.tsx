@@ -7,6 +7,7 @@ import CreateCardModal from "@/components/CreateCardModal";
 import TagEditor, { isThematicTag, isCustomTag } from "@/components/TagEditor";
 import EditableField from "@/components/EditableField";
 import GrammarBox from "@/components/GrammarBox";
+import ConjugationModal from "@/components/ConjugationModal";
 import { ClickableHebrew } from "@/components/HebrewWord";
 
 interface VocabCard {
@@ -36,6 +37,7 @@ export default function VocabularyPage() {
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [conjugationCard, setConjugationCard] = useState<VocabCard | null>(null);
 
   const loadCards = useCallback(async () => {
     setLoading(true);
@@ -123,6 +125,7 @@ export default function VocabularyPage() {
   }
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -246,6 +249,7 @@ export default function VocabularyPage() {
                       grammarInfo={card.grammar_info as Parameters<typeof GrammarBox>[0]["grammarInfo"]}
                       fallback={card.grammar_notes}
                       cardId={card.word_type === "verb" ? card.card_id : undefined}
+                      onConjugationClick={card.word_type === "verb" ? () => setConjugationCard(card) : undefined}
                     />
 
                     {/* Example sentence */}
@@ -326,5 +330,20 @@ export default function VocabularyPage() {
         </div>
       )}
     </div>
+
+    {conjugationCard && (
+      <ConjugationModal
+        cardId={conjugationCard.card_id}
+        verbHebrew={
+          (conjugationCard.grammar_info?.infinitive as string) ?? conjugationCard.hebrew
+        }
+        verbEnglish={conjugationCard.english}
+        infinitive={
+          (conjugationCard.grammar_info?.infinitive as string) ?? conjugationCard.hebrew
+        }
+        onClose={() => setConjugationCard(null)}
+      />
+    )}
+    </>
   );
 }

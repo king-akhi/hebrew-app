@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import ListenButton from "@/components/ListenButton";
 
 interface VerbInfo {
@@ -29,11 +28,13 @@ export default function GrammarBox({
   grammarInfo,
   fallback,
   cardId,
+  onConjugationClick,
 }: {
   wordType: string | null;
   grammarInfo: GrammarInfo | null;
   fallback?: string | null;
   cardId?: string;
+  onConjugationClick?: () => void;
 }) {
   if (wordType === "verb" && grammarInfo) {
     return (
@@ -59,13 +60,21 @@ export default function GrammarBox({
             )}
           </p>
         )}
-        {cardId ? (
-          <Link
+        {onConjugationClick ? (
+          <button
+            type="button"
+            onClick={onConjugationClick}
+            className="text-xs text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+          >
+            → Full conjugation table
+          </button>
+        ) : cardId ? (
+          <a
             href={`/app/verbs/${cardId}`}
             className="text-xs text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             → Full conjugation table
-          </Link>
+          </a>
         ) : (
           <span className="text-xs text-zinc-300 dark:text-zinc-600 select-none">
             → Full conjugation table

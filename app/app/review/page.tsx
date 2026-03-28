@@ -376,6 +376,7 @@ export default function ReviewPage() {
               grammarInfo={card.grammar_info as Parameters<typeof GrammarBox>[0]["grammarInfo"]}
               fallback={card.grammar_notes}
               cardId={card.word_type === "verb" ? card.card_id : undefined}
+              onConjugationClick={isVerb ? () => setShowConjugation(true) : undefined}
             />
 
             {card.example_sentence_he && (
@@ -473,16 +474,6 @@ export default function ReviewPage() {
           </div>
         )}
       </div>
-
-      {/* Conjugation button for verbs */}
-      {revealed && isVerb && (
-        <button
-          onClick={() => setShowConjugation(true)}
-          className="w-full py-2 rounded-xl border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
-        >
-          View conjugation table
-        </button>
-      )}
 
       {/* Rating buttons */}
       {revealed && (() => {
