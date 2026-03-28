@@ -61,6 +61,12 @@ For every word or phrase provided, return a JSON object with:
 
   LEVEL tag (always include exactly one): "A1", "A2", "B1", "B2"
 
+PROPER NOUNS — check this FIRST, before anything else:
+If the word (after lemmatization) is a proper noun — geographic names (cities, countries, rivers: תל אביב, ירושלים, ישראל), personal names (דוד, שרה), brand names, or any named entity — return ONLY this minimal JSON and nothing else:
+{"is_proper_noun": true, "full_form": "<complete proper noun>", "english": "<English name>"}
+Use the context sentence to resolve partial forms: e.g. word "תל" in context "... בתל אביב" → {"is_proper_noun": true, "full_form": "תל אביב", "english": "Tel Aviv"}.
+Do NOT generate a full vocabulary card for proper nouns.
+
 Rules:
 - Use modern Israeli Hebrew (not biblical)
 - Example sentences should be natural and contemporary

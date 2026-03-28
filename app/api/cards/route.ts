@@ -65,7 +65,8 @@ export async function POST(request: Request) {
 
   let cardData: Record<string, unknown>;
   const cached = await checkSystemCache(word, supabase);
-  if (cached) {
+  if (cached && !context) {
+    // Only use system cache when there is no context — context is needed to detect proper nouns
     cardData = cached;
   } else {
     try {
@@ -74,8 +75,15 @@ export async function POST(request: Request) {
       console.error("[cards] Generation error:", err);
       return NextResponse.json({ error: "Card generation failed" }, { status: 500 });
     }
-    // Fire-and-forget: write to system cache for future users
-    saveToSystemCache(cardData, level, null, supabase).catch(() => {});
+    // If Claude flagged this as a proper noun, return early without saving a card
+    if (cardData.is_proper_noun === true) {
+      return NextResponse.json(
+        { error: "proper_noun", hebrew: cardData.full_form ?? word, english: cardData.english ?? "" },
+        { status: 422 }
+      );
+    }
+    // Fire-and-forget: write to system cache for future users (only when no user-specific context)
+    if (!context) saveToSystemCache(cardData, level, null, supabase).catch(() => {});
   }
 
   try {

@@ -27,12 +27,14 @@ function HebrewWordModal({ word, contextSentence, onClose }: { word: string; con
   const [deleted, setDeleted] = useState(false);
   const [limitState, setLimitState] = useState<{ limit: number; created_today: number } | null>(null);
   const [bumpingLimit, setBumpingLimit] = useState(false);
+  const [properNoun, setProperNoun] = useState<{ hebrew: string; english: string } | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   async function generateCard() {
     setLoading(true);
     setError(null);
     setLimitState(null);
+    setProperNoun(null);
     try {
       const res = await fetch("/api/cards", {
         method: "POST",
@@ -42,6 +44,8 @@ function HebrewWordModal({ word, contextSentence, onClose }: { word: string; con
       const data = await res.json();
       if (res.status === 429) {
         setLimitState({ limit: data.limit, created_today: data.created_today });
+      } else if (res.status === 422 && data.error === "proper_noun") {
+        setProperNoun({ hebrew: data.hebrew, english: data.english });
       } else if (!res.ok) {
         throw new Error(data.error ?? "Failed to generate card");
       } else {
@@ -168,6 +172,16 @@ function HebrewWordModal({ word, contextSentence, onClose }: { word: string; con
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {properNoun && !loading && (
+          <div className="p-6 text-center space-y-3">
+            <p className="text-4xl font-medium leading-tight" dir="rtl" lang="he">{properNoun.hebrew}</p>
+            <p className="text-base font-medium">{properNoun.english}</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              This is a proper noun — not a vocabulary word
+            </p>
           </div>
         )}
 
