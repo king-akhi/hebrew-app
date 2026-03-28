@@ -11,12 +11,18 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export type CardData = Record<string, unknown>;
 
-/** Call Claude Haiku to generate structured card data for a single word. */
-export async function generateCardContent(word: string, level: string, context?: string): Promise<CardData> {
+/** Build the user message for card generation (shared by streaming and non-streaming). */
+export function buildCardUserMessage(word: string, level: string, context?: string): string {
   const contextLine = context
     ? `\nContext sentence (the word appeared in this sentence — use it to disambiguate meaning): "${context}"`
     : "";
+  return `Generate a vocabulary card for: "${word}" (target level: ${level})${contextLine}
 
+IMPORTANT: If the input is an inflected or prefixed form (e.g. בתיק = ב + תיק, ילדים = plural of ילד, הלכתי = 1cs past of הלך), generate the card for the BASE/DICTIONARY form (תיק, ילד, הלך), not the inflected form. Always lemmatize first.`;
+}
+
+/** Call Claude Haiku to generate structured card data for a single word. */
+export async function generateCardContent(word: string, level: string, context?: string): Promise<CardData> {
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 600,
@@ -27,14 +33,7 @@ export async function generateCardContent(word: string, level: string, context?:
         cache_control: { type: "ephemeral" },
       },
     ],
-    messages: [
-      {
-        role: "user",
-        content: `Generate a vocabulary card for: "${word}" (target level: ${level})${contextLine}
-
-IMPORTANT: If the input is an inflected or prefixed form (e.g. בתיק = ב + תיק, ילדים = plural of ילד, הלכתי = 1cs past of הלך), generate the card for the BASE/DICTIONARY form (תיק, ילד, הלך), not the inflected form. Always lemmatize first.`,
-      },
-    ],
+    messages: [{ role: "user", content: buildCardUserMessage(word, level, context) }],
   });
 
   const raw = message.content
