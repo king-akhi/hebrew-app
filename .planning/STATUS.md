@@ -1,6 +1,6 @@
 # Project Status — Hebrew Learning App
 
-> **Mise à jour :** 2026-03-27
+> **Mise à jour :** 2026-03-28
 > **Règle :** Ce fichier doit être mis à jour à chaque session de travail.
 
 ---
@@ -81,10 +81,64 @@
 - [x] **OG image WhatsApp** — `app/opengraph-image.tsx` (Next.js ImageResponse) : fond sombre, grand א, "Aleph", "Learn Modern Hebrew". Résout le logo par défaut sur les previews de liens.
 - [x] **Conjugation table — un seul déclencheur** — supprimé le bouton "View conjugation table" en dessous de la carte review. Le lien "→ Full conjugation table" dans GrammarBox ouvre désormais le ConjugationModal (overlay) au lieu de naviguer vers une nouvelle page. GrammarBox accepte un prop `onConjugationClick`. Appliqué aussi dans Vocabulary page.
 
-#### Performance
+#### Performance (session 2026-03-28 matin)
 - [x] **Practice — pre-fetch exercises** — le fetch Claude part dès que l'écran de config s'affiche (pas au clic "Start"). Si l'user garde les réglages par défaut, "Start" est quasi-instantané. Basé sur un `prefetchRef` + key `count:type:cardId`.
 - [x] **HebrewWord modal — mot immédiat** — le mot hébreu cliqué s'affiche immédiatement avec skeleton animé pendant la génération. Fini le spinner blanc vide de 2-3s.
 - [x] **Conjugation — pre-warm** — après création d'un verbe (AddWordForm + tap-to-translate modal), fire-and-forget vers `/api/conjugation?cardId=xxx` pour pré-générer la table. Quand l'user l'ouvre, c'est déjà prêt.
+- [x] **Dashboard → Review prefetch** — `ReviewPrefetch` client component pré-charge `/api/cards/due` + `/api/settings` dans `sessionStorage` (TTL 45s) dès le chargement du dashboard. La page review est instantanée si l'user vient du dashboard.
+- [x] **Review page skeleton** — remplacé "Loading cards…" par un squelette de carte animé correspondant au layout réel.
+- [x] **AddWordForm skeleton** — pendant la génération, affiche le mot hébreu tapé immédiatement + skeleton animé (comme HebrewWord modal). Pour mot anglais : shimmer.
+- [x] **Correction fire-and-forget** — log DB dans `/api/correct` est maintenant fire-and-forget (`.then(() => {}, () => {})`). Économise ~100ms par vérification de réponse.
+- [x] **Correction JSON parsing robuste** — utilise `raw.match(/\{[\s\S]*\}/)` au lieu de `JSON.parse(raw.replace(...))`. Évite "Correction failed" quand Claude ajoute du texte avant/après le JSON.
+
+#### Fixes (session 2026-03-28)
+- [x] **Noms propres (tap-to-translate)** — Claude détecte maintenant les noms propres via le contexte de phrase. "בתל" dans "בתל אביב" → affiche "תל אביב / Tel Aviv — This is a proper noun" sans créer de carte. Système : prompt mis à jour + route retourne 422 + HebrewWord modal gère l'état `properNoun`.
+- [x] **System cache bypassé si contexte** — pour que la détection de noms propres fonctionne même si le mot est en cache.
+- [x] **buildCardUserMessage** — helper extrait de `lib/cards/generate.ts` pour partager le message user entre la route standard et la future route streaming.
+
+#### Performance — EN COURS (streaming, session prochaine)
+
+**Objectif : génération de carte 2x plus rapide + écrans d'attente engageants**
+
+**A. Parallélisation `/api/cards`** — à faire
+- Auth → puis en parallèle : profile + countCardsCreatedToday + checkSystemCache
+- Gain estimé : 300-500ms
+
+**B. Streaming SSE `/api/cards/stream`** — à faire (nouveau endpoint)
+Architecture complète décidée :
+- `POST /api/cards/stream` : parallel DB checks → deck lookup en parallèle avec Claude → stream SSE chunks → event `{t:"saved", card}` à la fin
+- Format SSE : `data: {t:"chunk", v:"texte"}\n\n` | `{t:"saved", card}` | `{t:"proper_noun", hebrew, english}` | `{t:"error", error}`
+- Header `X-Accel-Buffering: no` pour éviter le buffering Vercel/nginx
+- Cache hit → event `saved` immédiat (pas de chunks), retour quasi-instantané
+- Utilise `buildCardUserMessage` depuis `lib/cards/generate.ts`
+- `getOrCreateDeck` lancé en parallèle avec le stream Claude (économie ~200ms)
+
+**C. Refactor `AddWordForm`** — à faire
+Machine à états :
+- `stage: "idle" | "streaming" | "done"` remplace `loading: boolean`
+- `streamCard: PartialCard` (fields: hebrew, transliteration, english, example_sentence_he, example_sentence_en)
+- `accumulatedRef` + `streamCardRef` pour extraction sans re-renders inutiles
+- `properNoun` state ajouté
+
+Extraction progressive : regex `"field"\s*:\s*"((?:[^"\\]|\\.)*)"` — détecte chaque champ dès que la `"` fermante est reçue dans le stream. Fields extraits dans l'ordre : hebrew → transliteration → english → example_sentence_he → example_sentence_en.
+
+**D. UI streaming progressive** — à faire (dans AddWordForm)
+- Stage "streaming" : masque le form, affiche la carte en construction
+  - Hebrew → apparaît en grand dès que champ extrait (ou mot tapé en opacité 30% avant)
+  - Transliteration → fade in
+  - English → fade in
+  - Example sentence → fade in
+  - Grammar box + "Added to deck" → apparaît seulement quand event `saved` reçu
+- Messages rotatifs (800ms) : "Analyzing root letters…" / "Checking grammar rules…" / "Building example sentence…" / "Adding transliteration…" / "Finalizing your card…"
+- Fun fact hébreu : bloc bleu sous la carte, 1 fact aléatoire par génération parmi 10 hardcodés
+- Stage "done" : même carte résultat qu'actuellement (result card)
+- `handleBumpLimit` appelle `startStreaming(word)` sans await
+
+**Ordre d'implémentation :**
+1. `lib/prompts/card-generation.ts` — ajouter instruction ordre des champs JSON
+2. `app/api/cards/stream/route.ts` — nouveau endpoint streaming (utilise `buildCardUserMessage`)
+3. `app/api/cards/route.ts` — paralléliser profile + count + cache
+4. `app/app/AddWordForm.tsx` — refactor complet avec streaming + UI progressive
 
 ---
 
