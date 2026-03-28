@@ -73,10 +73,18 @@
 - [x] **Phonétique phrase exemple** — champ `example_sentence_transliteration` généré par Claude (nouvelles cartes), affiché sous la phrase hébraïque dans : review page, AddWordForm, BatchAddModal, vocabulary page.
 - [x] **Vocabulary page** — même format que review : GrammarBox en premier, label "Example", phonétique.
 
-### En attente de push prod (sur branche `dev`)
-- Vocabulary + BatchAddModal phonétique
-- Voice fix
-- Practice tenses fix
+### Session 2026-03-28 — Fixes & Performance
+
+#### Fixes
+- [x] **Tap-to-translate ambiguïté** — HebrewWord passe maintenant la phrase complète comme contexte à l'API. Claude sait dans quel sens interpréter le mot (ex: החרק = insecte, pas le verbe grincer).
+- [x] **Favicon** — `app/icon.svg` : lettre א sur fond sombre #18181b, coins arrondis.
+- [x] **OG image WhatsApp** — `app/opengraph-image.tsx` (Next.js ImageResponse) : fond sombre, grand א, "Aleph", "Learn Modern Hebrew". Résout le logo par défaut sur les previews de liens.
+- [x] **Conjugation table — un seul déclencheur** — supprimé le bouton "View conjugation table" en dessous de la carte review. Le lien "→ Full conjugation table" dans GrammarBox ouvre désormais le ConjugationModal (overlay) au lieu de naviguer vers une nouvelle page. GrammarBox accepte un prop `onConjugationClick`. Appliqué aussi dans Vocabulary page.
+
+#### Performance
+- [x] **Practice — pre-fetch exercises** — le fetch Claude part dès que l'écran de config s'affiche (pas au clic "Start"). Si l'user garde les réglages par défaut, "Start" est quasi-instantané. Basé sur un `prefetchRef` + key `count:type:cardId`.
+- [x] **HebrewWord modal — mot immédiat** — le mot hébreu cliqué s'affiche immédiatement avec skeleton animé pendant la génération. Fini le spinner blanc vide de 2-3s.
+- [x] **Conjugation — pre-warm** — après création d'un verbe (AddWordForm + tap-to-translate modal), fire-and-forget vers `/api/conjugation?cardId=xxx` pour pré-générer la table. Quand l'user l'ouvre, c'est déjà prêt.
 
 ---
 
